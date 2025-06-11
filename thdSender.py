@@ -19,8 +19,8 @@ class thdSender(threading.Thread):
         self.influx_port  = self.config["influx_port"]
         self.influx_db    = self.config["influx_db"]
 
-        self.measurement  = self.config["name"]
-        self.id_site = self.config['id_site']
+        self.installation   = self.config["installation"]
+        self.id_site        = self.config['id_site']
 
         self.q = self.shared['queue']
         self._stop_event = threading.Event()
@@ -48,10 +48,10 @@ class thdSender(threading.Thread):
                         
                         data_point = {
                             'time'          : item['time'].isoformat(),
-                            'measurement'   : self.measurement,
+                            'measurement'   : topic[2],
                             'tags'          : { 'portal_id' : topic[1],
                                                 'site_id' : self.id_site,
-                                                'device' : topic[2],
+                                                'installation' : self.installation,
                                                 'bus_id' : int( topic[3] ) },
                             'fields'        : { "-".join( topic[4:] ) : value },
                         }
