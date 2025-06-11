@@ -38,10 +38,10 @@ class thdReceiver(threading.Thread):
             print(f"[RECEIVER-CONNECT] ({datetime.now(tz=None)}) Subscribed to {topic}")
 
     def on_message(self, client, userdata, msg):
-        print(f"[RECEIVER-MESSAGE] ({datetime.now(tz=None)}) @ {msg.topic} `{str(msg.payload.decode("utf-8"))}`")
+        #print(f"[RECEIVER-MESSAGE] ({datetime.now(tz=None)}) @ {msg.topic} `{str(msg.payload.decode("utf-8"))}`")
         item = { 'time'  : datetime.now(tz=None),
                  'topic' : msg.topic,
-                 'msg'   : msg.payload.decode("utf-8")
+                 'msg'   : msg.payload
                }
         try:
             self.q.put(item, timeout=1)
