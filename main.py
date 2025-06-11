@@ -22,7 +22,7 @@ def getSiteInfo( config ):
     """
     import requests, json
 
-    id_site = int( config['id_site'] )
+    id_site = int( config['VRM']['id_site'] )
     api_ui = config['api_ui']
     api_access_token = config['api_access_token']
 
