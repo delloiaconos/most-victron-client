@@ -1,5 +1,6 @@
 from thdReceiver import thdReceiver
 from thdKeepAlive import thdKeepAlive
+from queue import Queue
 
 import time
 from datetime import datetime, timezone
@@ -71,10 +72,12 @@ if __name__ == "__main__":
     config['client_id'] = getBaseClientId()
     config['topic_subscribe'] = [f"N/{siteInfo['portal_id']}/#"]
 
+    shared = {}
+    shared['queue'] = Queue()
 
-    received_thd = thdReceiver( config )
+    received_thd = thdReceiver( config, shared )
     
-    keepalive_thd = thdKeepAlive( config )
+    keepalive_thd = thdKeepAlive( config, shared )
     keepalive_thd.start()
 
     lastConnection = datetime.now()
@@ -86,7 +89,7 @@ if __name__ == "__main__":
             lastConnection = datetime.now()
             if not received_thd.is_alive():
                 print( f"[MAIN] ({datetime.now(tz=None)}) Starting receiver thread")
-                received_thd = thdReceiver( config )
+                received_thd = thdReceiver( config, shared )
                 received_thd.start()
 
         elif not ConnectionState:
@@ -104,7 +107,7 @@ if __name__ == "__main__":
                     keepalive_thd.join()
 
                 # Update connection info!
-                siteInfo = getSiteInfo( config )
+                siteInfo = getSiteInfo( config, shared )
                 print( f"[MAIN] ({datetime.now(tz=None)}) {siteInfo}" )
 
                 config['broker_host'] = siteInfo['mqtt_host']
@@ -112,7 +115,7 @@ if __name__ == "__main__":
                 config['client_id'] = getBaseClientId()
                 config['topic_subscribe'] = [f"N/{siteInfo['portal_id']}/#"]
 
-                keepalive_thd = thdKeepAlive( config )
+                keepalive_thd = thdKeepAlive( config, shared )
                 keepalive_thd.start()
 
     keepalive_thd.stop()

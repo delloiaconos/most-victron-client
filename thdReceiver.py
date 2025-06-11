@@ -3,12 +3,14 @@ import time
 import paho.mqtt.client as mqtt
 import ssl
 from datetime import datetime, timezone
+from queue import Queue
 
 class thdReceiver(threading.Thread):
-    def __init__(self, config ):
+    def __init__(self, config, shared ):
         super().__init__()
 
         self.config = config
+        self.shared = shared
 
         self.broker_host = self.config['broker_host']
         self.broker_port = int( self.config['broker_port'] )

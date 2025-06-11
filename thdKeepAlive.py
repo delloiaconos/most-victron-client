@@ -2,7 +2,7 @@ import threading
 import time
 from os import system
 from datetime import datetime, timezone
-
+from queue import Queue
 
 CONSECUTIVE_SUCCESS_TH  = 2
 CONSECUTIVE_FAILS_TH    = 5
@@ -10,10 +10,11 @@ DELTA_KEEPALIVE_SLEEP   = 10
 
 
 class thdKeepAlive(threading.Thread):
-    def __init__( self, config ):
+    def __init__( self, config, shared ):
         super().__init__()
 
         self.config = config
+        self.shared = shared
 
         self._stop_event = threading.Event()
 
