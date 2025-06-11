@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     config = configparser.ConfigParser()
 
-    config.read('config/vrm-config.ini')
+    config.read('config/config.ini')
     config = {s:config['DEFAULT'][s] for s in config['DEFAULT'].keys()}  
 
     # Site Info initial retrival from VRM

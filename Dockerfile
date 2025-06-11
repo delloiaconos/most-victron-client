@@ -42,11 +42,12 @@ RUN mkdir /app/logs
 COPY venus-ca.crt /app/
 COPY intermediate_ca.pem /app/intermediate_ca.pem
 
-COPY config/vrm-config.ini /app/config/
+COPY config/config.ini /app/config/
 COPY start.sh /app/
 COPY main.py /app/
 COPY thdKeepAlive.py /app/
 COPY thdReceiver.py /app/
+COPY thdSender.py /app/
 
 #COPY config/receiver-config.yaml /app/config/
 #COPY config/vrm.yaml /app/config/
