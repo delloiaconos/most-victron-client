@@ -113,6 +113,23 @@ Make sure both scripts have execution permissions:
 chmod +x build.sh run.sh
 ```
 
+### Use ansible to deploy
+
+1. Install ansible
+```bash
+
+```
+
+2. Install collections:
+```bash
+ansible-galaxy collection install community.docker
+```
+
+3. Run the playbook 
+```bash
+ansible-playbook create_containers.yml
+```
+
 # Git & Collaboration
 This project is version-controlled via Git for clarity and development hygiene — no CI/CD or advanced Git-based deployments are planned.
 If you'd like access to the repository, just ask the maintainer.
