@@ -5,13 +5,16 @@ import time
 from datetime import datetime, timezone
 import configparser
 
+DELTA_SYSINFO_RETRIVAL = 600
+DELTA_SLEEP            = 5
 
-def get_base_client_id(length):
+def getBaseClientId():
     """
     Generates a base client ID for the MQTT connection.
-    The client ID is constructed using the VRM site ID and a random string.
+    The client ID is constructed using a random string.
     """
     import random, string
+    length = 10
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
 
@@ -22,7 +25,7 @@ def getSiteInfo( config ):
     """
     import requests, json
 
-    id_site = int( config['VRM']['id_site'] )
+    id_site = int( config['id_site'] )
     api_ui = config['api_ui']
     api_access_token = config['api_access_token']
 
@@ -35,10 +38,10 @@ def getSiteInfo( config ):
 
     r = requests.request("GET", url, headers=headers, params=querystring)
     if r.status_code != 200:
-        log.error(f"VRM api: {r}")
+        print( f"[MAIN-getSiteInfo] ({datetime.now(tz=None)}) api: {r}" )
 
     data = json.loads(r.text)
-    # PORTAL_ID = user_data["records"][0]["identifier"]
+
     idSites = {}
 
     for i in data["records"]:
@@ -49,7 +52,9 @@ def getSiteInfo( config ):
         }
     
     return idSites[id_site] 
-    
+
+
+
 if __name__ == "__main__":
 
     config = configparser.ConfigParser()
@@ -57,34 +62,58 @@ if __name__ == "__main__":
     config.read('config/vrm-config.ini')
     config = {s:config['DEFAULT'][s] for s in config['DEFAULT'].keys()}  
 
+    # Site Info initial retrival from VRM
     siteInfo = getSiteInfo( config )
-    print( siteInfo )
+    print( f"[MAIN] ({datetime.now(tz=None)}) {siteInfo}" )
 
     config['broker_host'] = siteInfo['mqtt_host']
     config['portal_id'] = siteInfo['portal_id']
-    config['client_id'] = get_base_client_id(10)
+    config['client_id'] = getBaseClientId()
     config['topic_subscribe'] = [f"N/{siteInfo['portal_id']}/#"]
 
 
     received_thd = thdReceiver( config )
     
     keepalive_thd = thdKeepAlive( config )
-    keepalive_thd.start( )
+    keepalive_thd.start()
 
+    lastConnection = datetime.now()
     while True:
-        time.sleep(5)
+        time.sleep(DELTA_SLEEP)
         ConnectionState = keepalive_thd.getConnectionState()
 
         if ConnectionState:
+            lastConnection = datetime.now()
             if not received_thd.is_alive():
                 print( f"[MAIN] ({datetime.now(tz=None)}) Starting receiver thread")
+                received_thd = thdReceiver( config )
                 received_thd.start()
-        else:
+
+        elif not ConnectionState:
             if received_thd.is_alive():
-                print( f"[MAIN] ({datetime.now(tz=None)}) stopping receiver thread")
+                print( f"[MAIN] ({datetime.now(tz=None)}) Stopping receiver thread")
                 received_thd.stop()
                 received_thd.join()
-                received_thd = thdReceiver( config )
-        
+            
+            delta = (datetime.now() - lastConnection).total_seconds()
+            if delta > DELTA_SYSINFO_RETRIVAL:
+
+                if keepalive_thd.is_alive():
+                    print( f"[MAIN] ({datetime.now(tz=None)}) Stopping keepalive thread")
+                    keepalive_thd.stop()
+                    keepalive_thd.join()
+
+                # Update connection info!
+                siteInfo = getSiteInfo( config )
+                print( f"[MAIN] ({datetime.now(tz=None)}) {siteInfo}" )
+
+                config['broker_host'] = siteInfo['mqtt_host']
+                config['portal_id'] = siteInfo['portal_id']
+                config['client_id'] = getBaseClientId()
+                config['topic_subscribe'] = [f"N/{siteInfo['portal_id']}/#"]
+
+                keepalive_thd = thdKeepAlive( config )
+                keepalive_thd.start()
+
     keepalive_thd.stop()
     keepalive_thd.join()

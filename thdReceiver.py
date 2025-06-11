@@ -11,14 +11,13 @@ class thdReceiver(threading.Thread):
         self.config = config
 
         self.broker_host = self.config['broker_host']
-        self.broker_port = self.config['broker_port']
+        self.broker_port = int( self.config['broker_port'] )
         self.client_id = self.config['client_id']
         self.topic_subscribe = self.config['topic_subscribe'] or []
 
         self._stop_event = threading.Event()
 
         #MQTT Client
-
         self.client = mqtt.Client(client_id=self.client_id)
 
         self.client.username_pw_set( self.config['mqtt_user'], self.config['mqtt_pass'] )
@@ -29,16 +28,16 @@ class thdReceiver(threading.Thread):
         self.client.on_message = self.on_message
 
     def on_connect(self, client, userdata, flags, rc):
-        print(f"[MQTT-CONNECT] ({datetime.now(tz=None)}) Connected with result code {rc}")
+        print(f"[RECEIVER-CONNECT] ({datetime.now(tz=None)}) Connected with result code {rc}")
         for topic in self.topic_subscribe:
             self.client.subscribe(topic)
-            print(f"[MQTT-CONNECT] ({datetime.now(tz=None)}) Subscribed to {topic}")
+            print(f"[RECEIVER-CONNECT] ({datetime.now(tz=None)}) Subscribed to {topic}")
 
     def on_message(self, client, userdata, msg):
-        print(f"[MQTT-MESSAGE] ({datetime.now(tz=None)}) @ {msg.topic}")
+        print(f"[RECEIVER-MESSAGE] ({datetime.now(tz=None)}) @ {msg.topic} `{str(msg.payload.decode("utf-8"))}`")
 
     def run(self):
-        print(f"[MQTT-RUN] ({datetime.now(tz=None)}) Starting MQTT thread")
+        print(f"[RECEIVER-RUN] ({datetime.now(tz=None)}) Starting Receiver thread")
         self.client.connect(self.broker_host, self.broker_port, keepalive=60)
         self.client.loop_start()
         try:
@@ -47,10 +46,10 @@ class thdReceiver(threading.Thread):
         finally:
             self.client.loop_stop()
             self.client.disconnect()
-            print( f"[MQTT-RUN] ({datetime.now(tz=None)}) MQTT thread stopped")
+            print( f"[RECEIVER-RUN] ({datetime.now(tz=None)}) Receiver thread stopped")
 
     def stop(self):
-        print( f"[MQTT-STOP] ({datetime.now(tz=None)}) Stopping MQTT thread")
+        print( f"[RECEIVER-STOP] ({datetime.now(tz=None)}) Stopping Receiver thread")
         self._stop_event.set()
 
 if __name__ == "__main__":

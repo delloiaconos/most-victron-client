@@ -3,6 +3,12 @@ import time
 from os import system
 from datetime import datetime, timezone
 
+
+CONSECUTIVE_SUCCESS_TH  = 2
+CONSECUTIVE_FAILS_TH    = 5
+DELTA_KEEPALIVE_SLEEP   = 10
+
+
 class thdKeepAlive(threading.Thread):
     def __init__( self, config ):
         super().__init__()
@@ -30,7 +36,6 @@ class thdKeepAlive(threading.Thread):
 
         mqtt_clientid = self.config['client_id']
 
-
         addKeepAliveMsg = True
 
         try:
@@ -43,10 +48,10 @@ class thdKeepAlive(threading.Thread):
 
                 command = f"""mosquitto_pub -t 'R/{portal_id}/keepalive' -m '{msg}' -h '{mqtt_host}' --cafile '{mqtt_cert}' -u '{mqtt_usr}' -P '{mqtt_pwd}' -p '{mqtt_port}' -I '{mqtt_clientid}-keep'"""
 
-                ecode = system(command)
+                ecode = system(command + " > /dev/null 2>&1")
                 
                 if ecode != 0:
-                    print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) command failed with {ecode}" )
+                    print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) command failed with `{ecode}`" )
                     addKeepAliveMsg = True
                     self.success = 0
                     self.fails = self.fails + 1
@@ -57,9 +62,9 @@ class thdKeepAlive(threading.Thread):
                     self.success = self.success + 1
                     self.fails = 0
 
-                time.sleep( 10 )
+                time.sleep( DELTA_KEEPALIVE_SLEEP )
         finally:
-            print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) Stopped!" )
+            print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) Stopped Keepalive thread!" )
             self.successfully = 0
 
     def stop(self):
@@ -68,10 +73,10 @@ class thdKeepAlive(threading.Thread):
 
     def getConnectionState( self ):
 
-        if self.success > 2:
+        if self.success > CONSECUTIVE_SUCCESS_TH:
             self.ConnectionState = True
         
-        if self.fails > 5:
+        if self.fails > CONSECUTIVE_FAILS_TH:
             self.ConnectionState = False
 
         return self.ConnectionState
