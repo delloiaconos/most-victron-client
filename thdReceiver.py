@@ -2,12 +2,15 @@ import threading
 import time
 import paho.mqtt.client as mqtt
 import ssl
-from datetime import datetime, timezone
-from queue import Queue
+from datetime import datetime
+import queue
 
 class thdReceiver(threading.Thread):
     def __init__(self, config, shared ):
         super().__init__()
+
+        import pytz
+        self.tz = pytz.timezone("Europe/Rome")
 
         self.config = config
         self.shared = shared
@@ -32,24 +35,24 @@ class thdReceiver(threading.Thread):
         self.client.on_message = self.on_message
 
     def on_connect(self, client, userdata, flags, rc):
-        print(f"[RECEIVER-CONNECT] ({datetime.now(tz=None)}) Connected with result code {rc}")
+        print(f"[RECEIVER-CONNECT] ({datetime.now(tz=self.tz)}) Connected with result code {rc}")
         for topic in self.topic_subscribe:
             self.client.subscribe(topic)
-            print(f"[RECEIVER-CONNECT] ({datetime.now(tz=None)}) Subscribed to {topic}")
+            print(f"[RECEIVER-CONNECT] ({datetime.now(tz=self.tz)}) Subscribed to {topic}")
 
     def on_message(self, client, userdata, msg):
-        #print(f"[RECEIVER-MESSAGE] ({datetime.now(tz=None)}) @ {msg.topic} `{str(msg.payload.decode("utf-8"))}`")
-        item = { 'time'  : datetime.now(tz=None),
+        #print(f"[RECEIVER-MESSAGE] ({datetime.now(tz=self.tz)}) @ {msg.topic} `{str(msg.payload.decode("utf-8"))}`")
+        item = { 'time'  : datetime.now(tz=self.tz),
                  'topic' : msg.topic,
-                 'msg'   : msg.payload
+                 'msg'   : msg.payload.decode("utf-8")
                }
         try:
             self.q.put(item, timeout=1)
         except queue.Full as e:
-            print(f"[RECEIVER-MESSAGE] ({datetime.now(tz=None)}) Queue full!")
+            print(f"[RECEIVER-MESSAGE] ({datetime.now(tz=self.tz)}) Queue full!")
 
     def run(self):
-        print(f"[RECEIVER-RUN] ({datetime.now(tz=None)}) Starting Receiver thread")
+        print(f"[RECEIVER-RUN] ({datetime.now(tz=self.tz)}) Starting Receiver thread")
         self.client.connect(self.broker_host, self.broker_port, keepalive=60)
         self.client.loop_start()
         try:
@@ -58,10 +61,10 @@ class thdReceiver(threading.Thread):
         finally:
             self.client.loop_stop()
             self.client.disconnect()
-            print( f"[RECEIVER-RUN] ({datetime.now(tz=None)}) Receiver thread stopped")
+            print( f"[RECEIVER-RUN] ({datetime.now(tz=self.tz)}) Receiver thread stopped")
 
     def stop(self):
-        print( f"[RECEIVER-STOP] ({datetime.now(tz=None)}) Stopping Receiver thread")
+        print( f"[RECEIVER-STOP] ({datetime.now(tz=self.tz)}) Stopping Receiver thread")
         self._stop_event.set()
 
 if __name__ == "__main__":

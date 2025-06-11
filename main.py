@@ -1,7 +1,7 @@
 from thdReceiver import thdReceiver
 from thdKeepAlive import thdKeepAlive
 from thdSender import thdSender
-from queue import Queue
+import queue
 
 import time
 from datetime import datetime, timezone
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     config['topic_subscribe'] = [f"N/{siteInfo['portal_id']}/#"]
 
     shared = {}
-    shared['queue'] = Queue()
+    shared['queue'] = queue.Queue()
 
     received_thd = thdReceiver( config, shared )
 
