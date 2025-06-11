@@ -12,6 +12,8 @@ class thdReceiver(threading.Thread):
         self.config = config
         self.shared = shared
 
+        self.q = self.shared['queue']
+
         self.broker_host = self.config['broker_host']
         self.broker_port = int( self.config['broker_port'] )
         self.client_id = self.config['client_id']
@@ -37,6 +39,14 @@ class thdReceiver(threading.Thread):
 
     def on_message(self, client, userdata, msg):
         print(f"[RECEIVER-MESSAGE] ({datetime.now(tz=None)}) @ {msg.topic} `{str(msg.payload.decode("utf-8"))}`")
+        item = { 'time'  : datetime.now(tz=None),
+                 'topic' : msg.topic,
+                 'msg'   : msg.payload.decode("utf-8")
+               }
+        try:
+            self.q.put(item, timeout=1)
+        except queue.Full as e:
+            print(f"[RECEIVER-MESSAGE] ({datetime.now(tz=None)}) Queue full!")
 
     def run(self):
         print(f"[RECEIVER-RUN] ({datetime.now(tz=None)}) Starting Receiver thread")

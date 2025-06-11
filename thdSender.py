@@ -10,17 +10,19 @@ class thdSender(threading.Thread):
         self.config = config
         self.shared = shared
 
-        self.queue = self.shared['queue']
+        self.q = self.shared['queue']
         self._stop_event = threading.Event()
 
 
     def run(self):
         print(f"[SENDER-RUN] ({datetime.now(tz=None)}) Starting Sender thread")
-
         try:
             while not self._stop_event.is_set():
-                time.sleep(0.1)
-            time.sleep(10)
+                try:
+                    item = self.q.get(timeout=60)
+                    print( f"[SENDER-RUN] ({datetime.now(tz=None)}) received {item}" )  
+                except queue.Empty:
+                    print( f"[SENDER-RUN] ({datetime.now(tz=None)}) Queue empty" )    
         finally:
             print( f"[SENDER-RUN] ({datetime.now(tz=None)}) Sender thread stopped")
 

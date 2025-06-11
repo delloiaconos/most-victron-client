@@ -4,7 +4,7 @@ from os import system
 from datetime import datetime, timezone
 from queue import Queue
 
-CONSECUTIVE_SUCCESS_TH  = 2
+CONSECUTIVE_SUCCESS_TH  = 1
 CONSECUTIVE_FAILS_TH    = 5
 DELTA_KEEPALIVE_SLEEP   = 10
 
