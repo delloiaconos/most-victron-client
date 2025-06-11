@@ -1,6 +1,5 @@
 # For more information, please refer to https://aka.ms/vscode-docker-python
-FROM python:3.14.0b2-bookworm
-#FROM python:3.9.23-bullseye
+FROM python:3.8-alpine
 
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -13,9 +12,7 @@ ENV PYTHONUNBUFFERED=1
 
 
 #alpine
-RUN apt update
-RUN apt install openssh-client bash
-RUN apt install mosquitto-clients -y
+RUN apk add --no-cache openssh-client mosquitto-clients
 #almalinux 
 
 # Authorize SSH Host
@@ -61,5 +58,5 @@ COPY thdSender.py /app/
 
 
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
-CMD ["bash", "/app/start.sh"]
+CMD ["/bin/sh", "/app/start.sh"]
 # CMD /bin/sh
