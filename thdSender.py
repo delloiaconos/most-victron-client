@@ -39,6 +39,9 @@ class thdSender(threading.Thread):
 
                     try:
                         topic = item['topic'].split('/')
+                        if "Hystory" in topic:
+                            continue
+                            
                         msg = json.loads( item['msg'] )
 
                         try:
