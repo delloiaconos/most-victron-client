@@ -52,16 +52,18 @@ class thdKeepAlive(threading.Thread):
                 ecode = system(command + " > /dev/null 2>&1")
                 
                 if ecode != 0:
-                    print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) command failed with `{ecode}`" )
                     addKeepAliveMsg = True
                     self.success = 0
                     self.fails = self.fails + 1
 
+                    print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) command failed with `{ecode}` {self.success}/{self.fails}" )
+
                 else: # CHECK: https://mosquitto.org/man/mosquitto_pub-1.html
-                    print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) sent successfully" )
                     addKeepAliveMsg = False
                     self.success = self.success + 1
                     self.fails = 0
+
+                    print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) sent successfully {self.success}/{self.fails}" )
 
                 time.sleep( DELTA_KEEPALIVE_SLEEP )
         finally:
