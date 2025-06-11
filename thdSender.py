@@ -34,7 +34,7 @@ class thdSender(threading.Thread):
                 try:
                     item = self.q.get(timeout=60)        
                     print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) received `{item}`" )
-            
+
                     try:
                         topic = item['topic'].split('/')
                         msg = json.loads( item['msg'] )
@@ -52,10 +52,10 @@ class thdSender(threading.Thread):
                                                 'bus_id' : int( topic[3] ) },
                             'fields'        : { "-".join( topic[4:] ) : value },
                         }
-                        print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) `{data_point}`" )
                         self.client.write_points( [data_point] )
                     except:
-                        print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) EXCEPTION!!" )
+                        print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) EXCEPTION `{item}`!!" )
+
                 except queue.Empty:
                     print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) Queue empty" )    
         finally:
