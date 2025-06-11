@@ -1,5 +1,6 @@
 from thdReceiver import thdReceiver
 from thdKeepAlive import thdKeepAlive
+from thdSender import thdSender
 from queue import Queue
 
 import time
@@ -76,9 +77,12 @@ if __name__ == "__main__":
     shared['queue'] = Queue()
 
     received_thd = thdReceiver( config, shared )
-    
+
     keepalive_thd = thdKeepAlive( config, shared )
     keepalive_thd.start()
+
+    sender_thd = thdSender( config, shared )
+    sender_thd.start()
 
     lastConnection = datetime.now()
     while True:
@@ -120,3 +124,6 @@ if __name__ == "__main__":
 
     keepalive_thd.stop()
     keepalive_thd.join()
+
+    sender_thd.stop()
+    sender_thd.join()
