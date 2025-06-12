@@ -1,0 +1,75 @@
+---
+- name: Create multiple Docker containers from a name list
+  hosts: localhost
+  become: true
+  vars:
+    config_base_path: "/opt/most-giroe"
+    image_name: "most-giroe-victron"
+    image_tag: "latest-test"
+    base_container_name: "most-giroe"
+    installations:
+      - { "name" : "testing1"    , "id_site" : 123456 }
+      - { "name" : "testing2"    , "id_site" : 654321 }
+  tasks:
+    - name: Set current timestamp variable
+      set_fact:
+        release_tag: "{{ lookup('pipe', 'date +%Y%m%dT%H%M') }}"
+
+    - debug:
+        msg: "Current Release is {{ release_tag }}"
+
+    - name: Build Docker image
+      community.docker.docker_image:
+        name: "{{ image_name }}"
+        tag: "{{ release_tag }}"
+        source: build
+        build:
+          path: "./"
+
+    - name: Ensure base directory `{{ config_base_path }}` exists 
+      ansible.builtin.file:
+        path: "{{ config_base_path }}"
+        state: directory
+        mode: '0755'
+        owner: giroe
+        group: docker
+
+    - name: Ensure config directory exists in `{{ config_base_path }}`
+      ansible.builtin.file:
+        path: "{{ config_base_path }}/config"
+        state: directory
+        mode: '0755'
+        owner: giroe
+        group: docker
+
+    - name: Remove existing containers
+      community.docker.docker_container:
+        name: "{{ base_container_name }}-{{ installation.name }}"
+        state: absent
+        force_kill: true
+      loop: "{{ installations }}"
+      loop_control:
+        loop_var: installation
+
+    - name: Generate INI config file
+      ansible.builtin.template:
+        src: config/config.ini.j2
+        dest: "{{ config_base_path }}/config/{{ installation.name }}-config.ini"
+        mode: '0644'
+      loop: "{{ installations }}"
+      loop_control:
+        loop_var: installation
+
+    - name: Create containers from list
+      community.docker.docker_container:
+        name: "{{ base_container_name }}-{{ installation.name }}"
+        image: "{{ image_name }}:{{ release_tag }}"
+        volumes:
+          - "{{ config_base_path }}/config/{{ installation.name }}-config.ini:/app/config/config.ini:ro"
+        state: started
+        restart_policy: always
+        auto_remove: false 
+      loop: "{{ installations }}"
+      loop_control:
+        loop_var: installation
+
