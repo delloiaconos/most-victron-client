@@ -64,7 +64,7 @@ class thdSender(threading.Thread):
                             'tags'          : { 'portal_id' : topic[1],
                                                 'site_id' : self.id_site,
                                                 'installation' : self.installation,
-                                                'bus_id' : bus_id }
+                                                'bus_id' : bus_id },
                             'fields'        : { "-".join( topic[4:] ) : value },
                         }
                         self.client.write_points( [data_point] )
