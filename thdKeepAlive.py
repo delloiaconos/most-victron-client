@@ -14,12 +14,14 @@ class thdKeepAlive(threading.Thread):
     def __init__( self, config, shared ):
         super().__init__()
 
-        self.config = config
-        self.shared = shared
-
         import pytz
         self.tz = pytz.timezone("Europe/Rome")
 
+        self.config = config
+        self.shared = shared
+
+        self.q = self.shared['queue']
+        
         self._stop_event = threading.Event()
 
         self.success = 0
