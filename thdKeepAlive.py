@@ -3,6 +3,7 @@ import time
 from os import system
 from datetime import datetime, timezone
 from queue import Queue
+import json
 
 CONSECUTIVE_SUCCESS_TH  = 1
 CONSECUTIVE_FAILS_TH    = 5
@@ -51,19 +52,33 @@ class thdKeepAlive(threading.Thread):
 
                 ecode = system(command + " > /dev/null 2>&1")
                 
+                item = { }
                 if ecode != 0:
                     addKeepAliveMsg = True
                     self.success = 0
                     self.fails = self.fails + 1
 
-                    print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) command failed with `{ecode}` {self.success}/{self.fails}" )
+                    #print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) command failed with `{ecode}` {self.success}/{self.fails}" )
+                    item = { 'time'  : datetime.now(tz=self.tz),
+                             'topic' : "K/keepalive/keepalive/-1/fail",
+                             'msg'   : json.dumps( {'value' : self.fails } )
+                        }
 
                 else: # CHECK: https://mosquitto.org/man/mosquitto_pub-1.html
                     addKeepAliveMsg = False
                     self.success = self.success + 1
                     self.fails = 0
 
-                    print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) sent successfully {self.success}/{self.fails}" )
+                    #print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) sent successfully {self.success}/{self.fails}" )
+                    item = { 'time'  : datetime.now(tz=self.tz),
+                            'topic' : "K/keepalive/keepalive/-1/success",
+                            'msg'   : json.dumps( {'value' : self.success } )
+                    }
+
+                try:
+                    self.q.put(item, timeout=1)
+                except queue.Full as e:
+                    print(f"[RECEIVER-MESSAGE] ({datetime.now(tz=self.tz)}) Queue full!")
 
                 time.sleep( DELTA_KEEPALIVE_SLEEP )
         finally:
