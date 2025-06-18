@@ -27,7 +27,7 @@ class thdSender(threading.Thread):
 
 
     def run(self):
-        print(f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) Starting Sender thread")
+        print(f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) Starting a thread")
 
         self.client = InfluxDBClient( self.influx_host, self.influx_port, database=self.influx_db )
 
@@ -35,7 +35,7 @@ class thdSender(threading.Thread):
             while not self._stop_event.is_set():
                 try:
                     item = self.q.get(timeout=60)        
-                    print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) received `{item}`" )
+                    #print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) received `{item}`" )
 
                     try:
                         topic = item['topic'].split('/')
