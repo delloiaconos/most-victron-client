@@ -39,9 +39,13 @@ class thdSender(threading.Thread):
 
                     try:
                         topic = item['topic'].split('/')
+                        
+                        if len( topic ) < 4:
+                            continue
+
                         if "Hystory" in topic:
                             continue
-                            
+                        
                         msg = json.loads( item['msg'] )
 
                         try:
@@ -49,13 +53,18 @@ class thdSender(threading.Thread):
                         except:
                             value = str( msg['value'] )
                         
+                        try:
+                            bus_id = int( topic[3] )
+                        except:
+                            bus_id = str( topic[3] ) 
+                        
                         data_point = {
                             'time'          : item['time'].isoformat(),
                             'measurement'   : topic[2],
                             'tags'          : { 'portal_id' : topic[1],
                                                 'site_id' : self.id_site,
                                                 'installation' : self.installation,
-                                                'bus_id' : int( topic[3] ) },
+                                                'bus_id' : bus_id }
                             'fields'        : { "-".join( topic[4:] ) : value },
                         }
                         self.client.write_points( [data_point] )
