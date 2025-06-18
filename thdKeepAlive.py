@@ -17,6 +17,9 @@ class thdKeepAlive(threading.Thread):
         self.config = config
         self.shared = shared
 
+        import pytz
+        self.tz = pytz.timezone("Europe/Rome")
+
         self._stop_event = threading.Event()
 
         self.success = 0
