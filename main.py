@@ -111,7 +111,7 @@ if __name__ == "__main__":
                     keepalive_thd.join()
 
                 # Update connection info!
-                siteInfo = getSiteInfo( config, shared )
+                siteInfo = getSiteInfo( config )
                 print( f"[MAIN] ({datetime.now(tz=None)}) {siteInfo}" )
 
                 config['broker_host'] = siteInfo['mqtt_host']
