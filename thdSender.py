@@ -39,8 +39,11 @@ class thdSender(threading.Thread):
 
                     try:
                         topic = item['topic'].split('/')
-                        
-                        if len( topic ) < 4:
+                        if "keepalive" in topic:
+                            print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) received `{item}`" )
+
+                        if len( topic ) < 3:
+                            print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) received `{item}`" )
                             continue
 
                         if "Hystory" in topic:
