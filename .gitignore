@@ -1,9 +1,13 @@
-logs/*
-
-
-#Python
+# Python files
 __pycache__/*
+*.pyc
+
+# Environment
 venv/*
 .venv/*
 env/*
 .env/*
+
+# Directories
+logs/*
+
