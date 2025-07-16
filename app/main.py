@@ -6,7 +6,7 @@ import time
 from datetime import datetime, timezone
 import configparser, argparse
 from vrmutils import *
-
+import sys
 
 DELTA_SYSINFO_RETRIVAL = 600
 DELTA_SLEEP            = 5
@@ -79,9 +79,42 @@ def main( args, config ):
 
 
 def healthcheck( args, config ):
-    print( "[HEALTHCHECK] - passing")
-    pass
+    from influxdb import InfluxDBClient
+    import json
+    import pytz
 
+    tz = pytz.timezone("Europe/Rome")
+
+    print( f"[HEALTHCHECK] ({datetime.now(tz=tz)}) called")
+    
+    client = InfluxDBClient( config["influx_host"], config["influx_port"], database=config["influx_db"] )
+
+    res = client.query( f"""SHOW SERIES WHERE ("installation" = '{config['installation']}')""")
+    measurements = list( set( [ i['key'].split(',')[0] for i in list( res.get_points() ) ] ) )
+    
+    if 'keepalive' in measurements:
+        measurements.remove( 'keepalive' )
+
+    objs = {}
+    for meas in measurements:
+        res = client.query( f"""SELECT COUNT(*) FROM "{meas}" WHERE ("installation" = '{config['installation']}') AND time >= now() - 30m""")
+        if res:
+            for (measurement, tags), points in res.items():
+                point = list( points )[0]
+                objs = objs | point
+
+    #print( json.dumps( objs ), file=sys.stderr )
+    notNullKeys = [k for k, v in objs.items() if v is not None]
+    #print( notNullKeys )
+    del objs['time' ]
+
+    if any( objs.values() ):
+        print( f"[HEALTHCHECK] ({datetime.now(tz=tz)}) passed")
+        exit( 0 )
+    else:
+        print( f"[HEALTHCHECK] ({datetime.now(tz=tz)}) no data")
+        exit( 1 )
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

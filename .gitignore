@@ -11,3 +11,6 @@ env/*
 # Directories
 logs/*
 
+# Local configuration files
+./*.ini
+app/*.ini
