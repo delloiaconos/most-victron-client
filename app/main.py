@@ -60,19 +60,7 @@ def getSiteInfo( config ):
 
 CONFIG_FILE = '/config/config.ini'
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', help="configuration file overloading")
-    args = parser.parse_args()
-
-    if args.config is not None:
-        CONFIG_FILE = args.config
-
-    config = configparser.ConfigParser()
-    config.read(CONFIG_FILE)
-
-    config = {s:config['DEFAULT'][s] for s in config['DEFAULT'].keys()}  
-
+def main( args, config ):
     # Site Info initial retrival from VRM
     siteInfo = getSiteInfo( config )
     print( f"[MAIN] ({datetime.now(tz=None)}) {siteInfo}" )
@@ -136,3 +124,17 @@ if __name__ == "__main__":
 
     sender_thd.stop()
     sender_thd.join()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', help="configuration file overloading")
+    args = parser.parse_args()
+
+    if args.config is not None:
+        CONFIG_FILE = args.config
+
+    config = configparser.ConfigParser()
+    config.read(CONFIG_FILE)
+    config = {s:config['DEFAULT'][s] for s in config['DEFAULT'].keys()}  
+
+    main( args, config )
