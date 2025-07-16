@@ -77,9 +77,16 @@ def main( args, config ):
     sender_thd.stop()
     sender_thd.join()
 
+
+def healthcheck( args, config ):
+    print( "[HEALTHCHECK] - passing")
+    pass
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', help="configuration file overloading")
+    parser.add_argument('-hc', '--healthcheck', help="perform an healthcheck", action="store_true")
     args = parser.parse_args()
 
     if args.config is not None:
@@ -89,4 +96,7 @@ if __name__ == "__main__":
     config.read(CONFIG_FILE)
     config = {s:config['DEFAULT'][s] for s in config['DEFAULT'].keys()}  
 
-    main( args, config )
+    if args.healthcheck:
+        healthcheck( args, config )
+    else:
+        main( args, config )
