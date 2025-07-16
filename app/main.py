@@ -6,6 +6,8 @@ import queue
 import time
 from datetime import datetime, timezone
 import configparser
+import argparse
+
 
 DELTA_SYSINFO_RETRIVAL = 600
 DELTA_SLEEP            = 5
@@ -56,12 +58,19 @@ def getSiteInfo( config ):
     return idSites[id_site] 
 
 
+CONFIG_FILE = '/config/config.ini'
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--config', help="configuration file overloading")
+    args = parser.parse_args()
+
+    if args.config is not None:
+        CONFIG_FILE = args.config
 
     config = configparser.ConfigParser()
+    config.read(CONFIG_FILE)
 
-    config.read('/config/config.ini')
     config = {s:config['DEFAULT'][s] for s in config['DEFAULT'].keys()}  
 
     # Site Info initial retrival from VRM
