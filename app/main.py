@@ -106,15 +106,19 @@ def healthcheck( args, config ):
     #print( json.dumps( objs ), file=sys.stderr )
     notNullKeys = [k for k, v in objs.items() if v is not None]
     #print( notNullKeys )
-    del objs['time' ]
-
-    if any( objs.values() ):
-        print( f"[HEALTHCHECK] ({datetime.now(tz=tz)}) passed")
-        exit( 0 )
+    
+    if bool( objs ):
+        del objs['time' ]
+        if any( objs.values() ):
+            print( f"[HEALTHCHECK] ({datetime.now(tz=tz)}) passed")
+            exit( 0 )
+        else:
+            print( f"[HEALTHCHECK] ({datetime.now(tz=tz)}) no points")
+            exit( 1 )
     else:
         print( f"[HEALTHCHECK] ({datetime.now(tz=tz)}) no data")
-        exit( 1 )
-    
+        exit( 2 )
+        
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
