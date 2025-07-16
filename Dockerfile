@@ -40,10 +40,7 @@ COPY config/config.ini /config/config.ini
 
 # APPLICATION
 COPY app/start.sh /app/
-COPY app/main.py /app/
-COPY app/thdKeepAlive.py /app/
-COPY app/thdReceiver.py /app/
-COPY app/thdSender.py /app/
+COPY app/*.py /app/
 
 
 # Creates a non-root user with an explicit UID and adds permission to access the /app folder
