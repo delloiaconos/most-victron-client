@@ -39,7 +39,7 @@ COPY certs/venus-ca.crt /certs/venus-ca.crt
 COPY config/config.ini /config/config.ini
 
 # APPLICATION
-COPY app/start.sh /app/
+COPY app/*.sh /app/
 COPY app/*.py /app/
 
 
@@ -54,3 +54,5 @@ COPY app/*.py /app/
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
 CMD ["/bin/sh", "/app/start.sh"]
 
+HEALTHCHECK --interval=30m --timeout=10s --retries=3 \
+  CMD /bin/bash /app/healthcheck.sh || exit 1
