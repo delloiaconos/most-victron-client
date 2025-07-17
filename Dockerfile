@@ -54,5 +54,5 @@ COPY app/*.py /app/
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
 CMD ["/bin/sh", "/app/start.sh"]
 
-HEALTHCHECK --interval=30m --timeout=10s --retries=3 \
-  CMD /bin/bash /app/healthcheck.sh || exit 1
+HEALTHCHECK --start-period=60s --interval=120s --timeout=10s --retries=1 \
+  CMD /bin/sh /app/healthcheck.sh || exit 1
