@@ -6,8 +6,9 @@ import time
 from datetime import datetime, timezone
 import configparser, argparse
 from vrmutils import *
-import sys
+import sys, os
 
+DELTA_HEALTHCHECK      = "30m"
 DELTA_SYSINFO_RETRIVAL = 600
 DELTA_SLEEP            = 5
 CONFIG_FILE = '/config/config.ini'
@@ -97,7 +98,7 @@ def healthcheck( args, config ):
 
     objs = {}
     for meas in measurements:
-        res = client.query( f"""SELECT COUNT(*) FROM "{meas}" WHERE ("installation" = '{config['installation']}') AND time >= now() - 30m""")
+        res = client.query( f"""SELECT COUNT(*) FROM "{meas}" WHERE ("installation" = '{config['installation']}') AND time >= now() - {DELTA_HEALTHCHECK}""")
         if res:
             for (measurement, tags), points in res.items():
                 point = list( points )[0]
@@ -121,6 +122,13 @@ def healthcheck( args, config ):
         
 
 if __name__ == "__main__":
+
+    # overload parameters from environment variables
+    DELTA_HEALTHCHECK       = os.environ.get( 'HOME', DELTA_HEALTHCHECK )
+    DELTA_SYSINFO_RETRIVAL  = os.environ.get( 'HOME', DELTA_SYSINFO_RETRIVAL )
+    DELTA_SLEEP             = os.environ.get( 'HOME', DELTA_SLEEP )
+    CONFIG_FILE             = os.environ.get( 'HOME', CONFIG_FILE )
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', help="configuration file overloading")
     parser.add_argument('-hc', '--healthcheck', help="perform an healthcheck", action="store_true")
