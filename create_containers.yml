@@ -7,14 +7,12 @@
     image_name: "most-giroe-victron"
     image_tag: "latest-test"
     base_container_name: "most-giroe"
-    installations:
-      - { "name" : "testing1"    , "id_site" : 123456 }
-      - { "name" : "testing2"    , "id_site" : 654321 }
+    installations: "{{ lookup('file', 'installations.yml') | from_yaml }}"
+  
   tasks:
     - name: Set current timestamp variable
       set_fact:
         release_tag: "{{ lookup('pipe', 'date +%Y%m%dT%H%M') }}"
-
     - debug:
         msg: "Current Release is {{ release_tag }}"
 
@@ -41,7 +39,13 @@
         mode: '0755'
         owner: giroe
         group: docker
-
+    
+    - name : Remove autoheal container
+      community.docker.docker_container:
+        name: "most-autoheal"
+        state: absent
+        force_kill: true
+    
     - name: Remove existing containers
       community.docker.docker_container:
         name: "{{ base_container_name }}-{{ installation.name }}"
@@ -65,11 +69,27 @@
         name: "{{ base_container_name }}-{{ installation.name }}"
         image: "{{ image_name }}:{{ release_tag }}"
         volumes:
-          - "{{ config_base_path }}/config/{{ installation.name }}-config.ini:/app/config/config.ini:ro"
+          - "{{ config_base_path }}/config/{{ installation.name }}-config.ini:/config/config.ini:ro"
         state: started
         restart_policy: always
+        labels:
+          autoheal-monitoring: "true"
         auto_remove: false 
       loop: "{{ installations }}"
       loop_control:
         loop_var: installation
 
+    - name: Create monitoring container
+      community.docker.docker_container:
+        name: "most-autoheal"
+        image: "willfarrell/autoheal:1.1.0"
+        volumes:
+          - "/var/run/docker.sock:/var/run/docker.sock"
+          - "/etc/localtime:/etc/localtime:ro"
+        env:
+          AUTOHEAL_CONTAINER_LABEL: "autoheal-monitoring"
+          AUTOHEAL_INTERVAL : "60"
+          AUTOHEAL_START_PERIOD : "60"
+        state: started
+        restart_policy: always
+        auto_remove: false 

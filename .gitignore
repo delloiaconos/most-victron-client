@@ -12,5 +12,6 @@ env/*
 logs/*
 
 # Local configuration files
-./*.ini
+development.ini
+installations.yml
 app/*.ini
