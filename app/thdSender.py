@@ -54,7 +54,9 @@ class thdSender(threading.Thread):
                         try:
                             if str( msg['value'] ).lower() in ['none', 'null', 'empty']:
                                 continue
-
+                        except:
+                            pass
+                        
                         try:
                             value = float( msg['value'] )
                         except:
