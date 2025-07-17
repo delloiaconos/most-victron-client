@@ -8,7 +8,7 @@ import configparser, argparse
 from vrmutils import *
 import sys, os
 
-DELTA_HEALTHCHECK      = "5m"
+DELTA_HEALTHCHECK      = "10m"
 DELTA_SYSINFO_RETRIVAL = 600
 DELTA_SLEEP            = 5
 CONFIG_FILE = '/config/config.ini'
