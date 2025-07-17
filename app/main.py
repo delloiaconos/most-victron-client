@@ -8,7 +8,7 @@ import configparser, argparse
 from vrmutils import *
 import sys, os
 
-DELTA_HEALTHCHECK      = "30m"
+DELTA_HEALTHCHECK      = "5m"
 DELTA_SYSINFO_RETRIVAL = 600
 DELTA_SLEEP            = 5
 CONFIG_FILE = '/config/config.ini'
@@ -124,11 +124,11 @@ def healthcheck( args, config ):
 if __name__ == "__main__":
 
     # overload parameters from environment variables
-    DELTA_HEALTHCHECK       = os.environ.get( 'HOME', DELTA_HEALTHCHECK )
-    DELTA_SYSINFO_RETRIVAL  = os.environ.get( 'HOME', DELTA_SYSINFO_RETRIVAL )
-    DELTA_SLEEP             = os.environ.get( 'HOME', DELTA_SLEEP )
-    CONFIG_FILE             = os.environ.get( 'HOME', CONFIG_FILE )
-
+    DELTA_HEALTHCHECK       = os.environ.get( 'DELTA_HEALTHCHECK', DELTA_HEALTHCHECK )
+    DELTA_SYSINFO_RETRIVAL  = os.environ.get( 'DELTA_SYSINFO_RETRIVAL', DELTA_SYSINFO_RETRIVAL )
+    DELTA_SLEEP             = os.environ.get( 'DELTA_SLEEP', DELTA_SLEEP )
+    CONFIG_FILE             = os.environ.get( 'CONFIG_FILE', CONFIG_FILE )
+    
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', help="configuration file overloading")
     parser.add_argument('-hc', '--healthcheck', help="perform an healthcheck", action="store_true")
