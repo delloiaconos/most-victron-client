@@ -1,0 +1,11 @@
+{% for installation in installations %}
+
+[job-run "restart-{{ installation.name }}"]
+schedule = 22 16 * * *
+image = docker:cli
+command = sh -c `docker restart most-giroe-{{ installation.name  }}`
+volume = /var/run/docker.sock:/var/run/docker.sock
+
+{% endfor %}
+
+

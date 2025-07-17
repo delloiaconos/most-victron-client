@@ -40,6 +40,13 @@
         owner: giroe
         group: docker
     
+    
+    - name : Remove ofelia container
+      community.docker.docker_container:
+        name: "most-ofelia"
+        state: absent
+        force_kill: true
+
     - name : Remove autoheal container
       community.docker.docker_container:
         name: "most-autoheal"
@@ -63,6 +70,11 @@
       loop: "{{ installations }}"
       loop_control:
         loop_var: installation
+    
+    - name: Generate ofelia configuration
+      template:
+        src: "ofelia.ini.j2"
+        dest: "{{ config_base_path }}/ofelia.ini"
 
     - name: Create containers from list
       community.docker.docker_container:
@@ -88,8 +100,21 @@
           - "/etc/localtime:/etc/localtime:ro"
         env:
           AUTOHEAL_CONTAINER_LABEL: "autoheal-monitoring"
-          AUTOHEAL_INTERVAL : "60"
-          AUTOHEAL_START_PERIOD : "60"
+          AUTOHEAL_INTERVAL : "960"
+          AUTOHEAL_START_PERIOD : "300"
+          AUTOHEAL_DEFAULT_STOP_TIMEOUT : "30"	
+        state: started
+        restart_policy: always
+        auto_remove: false 
+    
+    - name: Create restarting container
+      community.docker.docker_container:
+        name: "most-ofelia"
+        image: "mcuadros/ofelia:latest"
+        volumes:
+          - "/var/run/docker.sock:/var/run/docker.sock"
+          - "/etc/localtime:/etc/localtime:ro"
+          - "{{ config_base_path }}/ofelia.ini:/etc/ofelia/config.ini"
         state: started
         restart_policy: always
         auto_remove: false 
