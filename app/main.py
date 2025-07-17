@@ -101,7 +101,7 @@ def healthcheck( args, config ):
         if res:
             for (measurement, tags), points in res.items():
                 point = list( points )[0]
-                objs = objs | point
+                objs = { **objs, **point }
 
     #print( json.dumps( objs ), file=sys.stderr )
     notNullKeys = [k for k, v in objs.items() if v is not None]
