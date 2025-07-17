@@ -52,6 +52,10 @@ class thdSender(threading.Thread):
                         msg = json.loads( item['msg'] )
 
                         try:
+                            if str( msg['value'] ).lower() in ['none', 'null', 'empty']:
+                                continue
+
+                        try:
                             value = float( msg['value'] )
                         except:
                             value = str( msg['value'] )
