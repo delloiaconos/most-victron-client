@@ -1,7 +1,6 @@
 ---
 - name: Create multiple Docker containers from a name list
   hosts: localhost
-  become: true
   vars:
     config_base_path: "/opt/most-giroe"
     image_name: "most-giroe-victron"
@@ -24,7 +23,8 @@
         build:
           path: "./"
 
-    - name: Ensure base directory `{{ config_base_path }}` exists 
+    - name: Ensure base directory `{{ config_base_path }}` exists
+      become: true
       ansible.builtin.file:
         path: "{{ config_base_path }}"
         state: directory
@@ -33,13 +33,13 @@
         group: docker
 
     - name: Ensure config directory exists in `{{ config_base_path }}`
+      become: true
       ansible.builtin.file:
         path: "{{ config_base_path }}/config"
         state: directory
         mode: '0755'
         owner: giroe
-        group: docker
-    
+        group: docker    
     
     - name : Remove ofelia container
       community.docker.docker_container:
