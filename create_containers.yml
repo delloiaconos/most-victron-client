@@ -84,6 +84,8 @@
           - "{{ config_base_path }}/config/{{ installation.name }}-config.ini:/config/config.ini:ro"
         state: started
         restart_policy: always
+        env:
+          SENDER_RUN_PRINT_MSG: 0
         labels:
           autoheal-monitoring: "true"
         auto_remove: false 
