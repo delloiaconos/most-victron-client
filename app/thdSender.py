@@ -62,10 +62,9 @@ class thdSender(threading.Thread):
 
                 if "Hystory" in topic:
                     continue
-                
-                msg = json.loads( item['msg'] )
 
                 try:
+                    msg = json.loads( item['msg'] )
                     if str( msg['value'] ).lower() in ['none', 'null', 'empty']:
                         continue
                 except:
