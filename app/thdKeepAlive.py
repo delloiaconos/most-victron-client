@@ -7,7 +7,7 @@ import json
 
 CONSECUTIVE_SUCCESS_TH  = 1
 CONSECUTIVE_FAILS_TH    = 5
-DELTA_KEEPALIVE_SLEEP   = 10
+DELTA_KEEPALIVE_SLEEP   = 45
 
 
 class thdKeepAlive(threading.Thread):
