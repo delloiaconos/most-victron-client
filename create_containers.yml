@@ -96,7 +96,7 @@
     
     - name: Generate ofelia configuration
       template:
-        src: "ofelia.ini.j2"
+        src: "config/ofelia.ini.j2"
         dest: "{{ config_base_path }}/ofelia.ini"
     
     - name: Ensure the docker network exists
