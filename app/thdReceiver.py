@@ -35,13 +35,14 @@ class thdReceiver(threading.Thread):
         self.client.on_message = self.on_message
 
     def on_connect(self, client, userdata, flags, rc):
-        print(f"[RECEIVER-CONNECT] ({datetime.now(tz=self.tz)}) Connected with result code {rc}")
+        #print(f"[RECEIVER-CONNECT] ({datetime.now(tz=self.tz)}) Connected with result code {rc}")
         for topic in self.topic_subscribe:
             self.client.subscribe(topic)
-            print(f"[RECEIVER-CONNECT] ({datetime.now(tz=self.tz)}) Subscribed to {topic}")
+            #print(f"[RECEIVER-CONNECT] ({datetime.now(tz=self.tz)}) Subscribed to {topic}")
 
     def on_message(self, client, userdata, msg):
         #print(f"[RECEIVER-MESSAGE] ({datetime.now(tz=self.tz)}) @ {msg.topic} `{str(msg.payload.decode("utf-8"))}`")
+    
         item = { 'time'  : datetime.now(tz=self.tz),
                  'topic' : msg.topic,
                  'msg'   : msg.payload.decode("utf-8")
