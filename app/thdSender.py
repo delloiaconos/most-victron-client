@@ -11,8 +11,8 @@ class thdSender(threading.Thread):
         super().__init__()
         
         import os
-        self.PRINT_MSG = bool( os.environ.get( 'SENDER_RUN_PRINT_MSG', False ) )
-        
+        self.PRINT_RECEIVED = os.environ.get( 'SENDER_RUN_PRINT_RECEIVED', 'False' ).lower() in ('true', '1', 't', 'yes', 'y')
+        self.PRINT_KEEPALIVE = os.environ.get( 'SENDER_RUN_PRINT_KEEPALIVE', 'False' ).lower() in ('true', '1', 't', 'yes', 'y')
 
         import pytz
         self.tz = pytz.timezone("Europe/Rome")
@@ -35,13 +35,17 @@ class thdSender(threading.Thread):
     def run(self):
         print(f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) Starting a thread")
 
-        self.client = InfluxDBClient( self.influx_host, self.influx_port, database=self.influx_db )
+        try:
+            self.client = InfluxDBClient( self.influx_host, self.influx_port, database=self.influx_db , timeout=60)
+        except Exception as ex:
+            print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) InfluxDBClient EXCEPTION {str(ex)}!!" )
+            
 
         try:
             while not self._stop_event.is_set():
                 try:
                     item = self.q.get(timeout=60)        
-                    if self.PRINT_MSG:
+                    if self.PRINT_RECEIVED:
                         print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) received `{item}`" )
 
                 except queue.Empty:
@@ -54,18 +58,22 @@ class thdSender(threading.Thread):
                     continue
                 
                 if "keepalive" in topic:
-                    print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) 'keepalive' `{item}`" )
+                    if self.PRINT_KEEPALIVE:
+                        print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) 'keepalive' `{item}`" )
 
                 if len( topic ) < 4:
                     print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) 'len( topic ) < 3' on `{item}`" )
                     continue
 
-                if "Hystory" in topic:
+                if "History" in topic:
                     continue
 
                 try:
                     msg = json.loads( item['msg'] )
-                    if str( msg['value'] ).lower() in ['none', 'null', 'empty']:
+                    val_str = str( msg['value'] )
+                    if val_str.lower() in ['none', 'null', 'empty']:
+                        continue
+                    if len( val_str ) == 0:
                         continue
                 except:
                     pass
@@ -73,7 +81,7 @@ class thdSender(threading.Thread):
                 try:
                     value = float( msg['value'] )
                 except:
-                    value = str( msg['value'] )
+                    continue
                 
                 try:
                     bus_id = int( topic[3] )
@@ -91,8 +99,8 @@ class thdSender(threading.Thread):
                         'fields'        : { "-".join( topic[4:] ) : value },
                     }
                     self.client.write_points( [data_point] )
-                except:
-                    print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) WRITE EXCEPTION `{data_point}`!!" )
+                except Exception as ex:
+                    print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) WRITE EXCEPTION `{data_point}` - {str(ex)}!!" )
         finally:
             print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) Sender thread stopped")
 
