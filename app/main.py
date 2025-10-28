@@ -88,7 +88,7 @@ def healthcheck( args, config ):
 
     print( f"[HEALTHCHECK] ({datetime.now(tz=tz)}) called")
     
-    client = InfluxDBClient( config["influx_host"], config["influx_port"], database=config["influx_db"] )
+    client = InfluxDBClient( config["influx_host"], config["influx_port"], database=config["influx_db"], username=config["influx_user"], password=config["influx_pass"] )
 
     res = client.query( f"""SHOW SERIES WHERE ("installation" = '{config['installation']}')""")
     measurements = list( set( [ i['key'].split(',')[0] for i in list( res.get_points() ) ] ) )

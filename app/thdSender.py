@@ -25,6 +25,10 @@ class thdSender(threading.Thread):
         self.influx_port  = self.config["influx_port"]
         self.influx_db    = self.config["influx_db"]
 
+
+        self.influx_user = self.config["influx_user"]
+        self.influx_pass = self.config["influx_pass"]
+
         self.installation   = self.config["installation"]
         self.id_site        = self.config['id_site']
 
@@ -37,7 +41,7 @@ class thdSender(threading.Thread):
         print(f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) Starting a thread")
 
         try:
-            self.client = InfluxDBClient( self.influx_host, self.influx_port, database=self.influx_db , timeout=60)
+            self.client = InfluxDBClient( self.influx_host, self.influx_port, database=self.influx_db, username=self.influx_user, password=self.influx_pass, timeout=60)
         except Exception as ex:
             print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) InfluxDBClient EXCEPTION {str(ex)}!!" )
             
