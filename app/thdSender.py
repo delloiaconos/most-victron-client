@@ -102,7 +102,8 @@ class thdSender(threading.Thread):
                 try:
                     value = float( msg['value'] )
                 except:
-                    continue
+                    topic.append( "str" )
+                    value = str( msg['value'] )
                 
                 try:
                     bus_id = int( topic[3] )
