@@ -35,11 +35,9 @@ The application is split across three main threads implemented in two classes:
   - `json`
   - `ssl`
   - `configparser`
-  - `influxdb` (planned)
+  - `influxdb` 
 - **Configurable via INI**: Easily adjustable settings through a config file.
 - **Structured logging**: Outputs logs in format `[CLASS] (YYYY-MM-DD HH:MM:SS)`.
-
-
 
 
 ## Status
@@ -47,7 +45,7 @@ The application is split across three main threads implemented in two classes:
 [x] Integrated logging
 [x] Docker-friendly
 
-[] InfluxDB integration pending
+[x] InfluxDB integration pending
 [] Dynamic broker IP re-check (planned)
 [] Topic parsing from Victron's VE.PROTOCOL 3.34 
 
