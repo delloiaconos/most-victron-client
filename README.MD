@@ -85,33 +85,27 @@ This project includes two helper scripts: `build.sh` and `run.sh` to simplify Do
 
 ### 1. Build the Docker Image
 
-The `build.sh` script builds the Docker image for the Victron MQTT client.
+The `makefile` script can build and run the Docker image for the Victron MQTT client.
 
 ```bash
-./build.sh
+make build
 ```
 
 This command:
 - Executes docker build using the local Dockerfile.
-- Tags the image (e.g., `most-victron-client:testing` — check your script for the exact tag).
+- Tags the image (e.g., `most-victron-client:devel` — check your script for the exact tag).
 
 
 ### 2. Run the Docker Container
-The `run.sh` script starts a new container from the previously built image.
+To start a new container from the previously built image, use the following command:
 
 ```bash
-./run.sh
+make run
 ```
 This command:
-- Launches the Docker container using the image built via `build.sh`.
-- Mounts required volumes or binds configuration files (e.g., config.ini).
+- Launches the Docker container using the last devel image available.
+- Mounts required volumes or binds configuration files (e.g., development.ini).
 
-### Notes
-Make sure both scripts have execution permissions:
-
-```bash
-chmod +x build.sh run.sh
-```
 
 ### Use ansible to deploy
 
@@ -127,7 +121,7 @@ ansible-galaxy collection install community.docker
 
 3. Run the playbook 
 ```bash
-ansible-playbook create_containers.yml
+ansible-playbook create_containers.yml --ask-become-pass
 ```
 
 # Git & Collaboration

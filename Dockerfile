@@ -10,7 +10,6 @@ ENV PYTHONUNBUFFERED=1
 # RUN python3 -m venv $VIRTUAL_ENV
 # ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-
 #alpine
 RUN apk add --no-cache openssh-client mosquitto-clients
 #almalinux 
@@ -25,29 +24,24 @@ RUN apk add --no-cache openssh-client mosquitto-clients
 
 RUN pip install --upgrade pip
 
-# Remove SSH keys
-#RUN rm -rf /root/.ssh/
-
 WORKDIR /app
 COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 
+RUN mkdir /logs
+RUN mkdir /certs
+RUN mkdir /config
 
-RUN mkdir /app/config
-RUN mkdir /app/logs
+# CERTIFICATES
+COPY certs/venus-ca.crt /certs/venus-ca.crt
 
-COPY venus-ca.crt /app/
-COPY intermediate_ca.pem /app/intermediate_ca.pem
+# CONFIGURATION
+COPY config/config.ini /config/config.ini
 
-COPY config/config.ini /app/config/
-COPY start.sh /app/
-COPY main.py /app/
-COPY thdKeepAlive.py /app/
-COPY thdReceiver.py /app/
-COPY thdSender.py /app/
+# APPLICATION
+COPY app/*.sh /app/
+COPY app/*.py /app/
 
-#COPY config/receiver-config.yaml /app/config/
-#COPY config/vrm.yaml /app/config/
 
 # Creates a non-root user with an explicit UID and adds permission to access the /app folder
 # For more info, please refer to https://aka.ms/vscode-docker-python-configure-containers
@@ -59,4 +53,6 @@ COPY thdSender.py /app/
 
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
 CMD ["/bin/sh", "/app/start.sh"]
-# CMD /bin/sh
+
+HEALTHCHECK --start-period=60s --interval=120s --timeout=10s --retries=1 \
+  CMD /bin/sh /app/healthcheck.sh || exit 1

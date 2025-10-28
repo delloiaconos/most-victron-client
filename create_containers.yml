@@ -1,20 +1,17 @@
 ---
 - name: Create multiple Docker containers from a name list
   hosts: localhost
-  become: true
   vars:
     config_base_path: "/opt/most-giroe"
     image_name: "most-giroe-victron"
     image_tag: "latest-test"
     base_container_name: "most-giroe"
-    installations:
-      - { "name" : "testing1"    , "id_site" : 123456 }
-      - { "name" : "testing2"    , "id_site" : 654321 }
+    installations: "{{ lookup('file', 'installations.yml') | from_yaml }}"
+  
   tasks:
     - name: Set current timestamp variable
       set_fact:
         release_tag: "{{ lookup('pipe', 'date +%Y%m%dT%H%M') }}"
-
     - debug:
         msg: "Current Release is {{ release_tag }}"
 
@@ -26,7 +23,8 @@
         build:
           path: "./"
 
-    - name: Ensure base directory `{{ config_base_path }}` exists 
+    - name: Ensure base directory `{{ config_base_path }}` exists
+      become: true
       ansible.builtin.file:
         path: "{{ config_base_path }}"
         state: directory
@@ -35,13 +33,35 @@
         group: docker
 
     - name: Ensure config directory exists in `{{ config_base_path }}`
+      become: true
       ansible.builtin.file:
         path: "{{ config_base_path }}/config"
         state: directory
         mode: '0755'
         owner: giroe
-        group: docker
+        group: docker  
 
+    - name: Ensure Influx directory exists in `{{ config_base_path }}`
+      become: true
+      ansible.builtin.file:
+        path: "{{ config_base_path }}/influx/data"
+        state: directory
+        mode: '0775'
+        owner: giroe
+        group: docker        
+
+    - name : Remove ofelia container
+      community.docker.docker_container:
+        name: "most-ofelia"
+        state: absent
+        force_kill: true
+
+    - name : Remove autoheal container
+      community.docker.docker_container:
+        name: "most-autoheal"
+        state: absent
+        force_kill: true
+    
     - name: Remove existing containers
       community.docker.docker_container:
         name: "{{ base_container_name }}-{{ installation.name }}"
@@ -51,6 +71,20 @@
       loop_control:
         loop_var: installation
 
+    - name: Remove INFLUX containers
+      community.docker.docker_container:
+        name: "most-influx"
+        state: absent
+        force_kill: true
+
+    - name: Copy influx configuration
+      copy:
+        src: config/influxdb.conf
+        dest: "{{ config_base_path }}/influx/influxdb.conf"
+        owner: giroe
+        group: docker
+        mode: "0777"
+    
     - name: Generate INI config file
       ansible.builtin.template:
         src: config/config.ini.j2
@@ -59,17 +93,84 @@
       loop: "{{ installations }}"
       loop_control:
         loop_var: installation
+    
+    - name: Generate ofelia configuration
+      template:
+        src: "ofelia.ini.j2"
+        dest: "{{ config_base_path }}/ofelia.ini"
+    
+    - name: Ensure the docker network exists
+      community.docker.docker_network:
+        name: most_net
+        state: present
+        
+    - name: Create INFLUX container
+      community.docker.docker_container:
+        name: "most-influx"
+        image: "influxdb:1.11.7"
+        networks:
+          - name: most_net   
+        hostname: "influx"
+        volumes:
+          - "/etc/localtime:/etc/localtime:ro"
+          - "{{ config_base_path }}/influx/data:/var/lib/influxdb"
+          - "{{ config_base_path }}/influx/influxdb.conf:/etc/influxdb/influxdb.conf:rw"
+        ports:
+          - "8086:8086"
+        env:
+          DOCKER_INFLUXDB_INIT_MODE: setup
+          DOCKER_INFLUXDB_INIT_USERNAME: giroe   
+          DOCKER_INFLUXDB_INIT_PASSWORD: giroe2025
+          DOCKER_INFLUXDB_INIT_BUCKET: TourE
 
-    - name: Create containers from list
+        user: "1000:1000"
+        state: started
+        restart_policy: always
+        auto_remove: false 
+
+    - name: Create VRM Client containers from list
       community.docker.docker_container:
         name: "{{ base_container_name }}-{{ installation.name }}"
         image: "{{ image_name }}:{{ release_tag }}"
+        networks:
+          - name: most_net
         volumes:
-          - "{{ config_base_path }}/config/{{ installation.name }}-config.ini:/app/config/config.ini:ro"
+          - "{{ config_base_path }}/config/{{ installation.name }}-config.ini:/config/config.ini:ro"
         state: started
         restart_policy: always
+        env:
+          SENDER_RUN_PRINT_RECEIVED: "0"
+        labels:
+          autoheal-monitoring: "true"
         auto_remove: false 
       loop: "{{ installations }}"
       loop_control:
         loop_var: installation
 
+    - name: Create monitoring container
+      community.docker.docker_container:
+        name: "most-autoheal"
+        image: "willfarrell/autoheal:1.1.0"
+        volumes:
+          - "/var/run/docker.sock:/var/run/docker.sock"
+          - "/etc/localtime:/etc/localtime:ro"
+        env:
+          AUTOHEAL_CONTAINER_LABEL: "autoheal-monitoring"
+          AUTOHEAL_INTERVAL : "960"
+          AUTOHEAL_START_PERIOD : "300"
+          AUTOHEAL_DEFAULT_STOP_TIMEOUT : "30"	
+        state: started
+        restart_policy: unless-stopped
+        auto_remove: false 
+    
+    - name: Create restarting container
+      community.docker.docker_container:
+        name: "most-ofelia"
+        image: "mcuadros/ofelia:latest"
+        volumes:
+          - "/var/run/docker.sock:/var/run/docker.sock"
+          - "/etc/localtime:/etc/localtime:ro"
+          - "{{ config_base_path }}/ofelia.ini:/etc/ofelia/config.ini"
+        state: started
+        restart_policy: always
+        auto_remove: false 

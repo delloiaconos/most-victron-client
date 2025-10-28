@@ -7,7 +7,7 @@ import json
 
 CONSECUTIVE_SUCCESS_TH  = 1
 CONSECUTIVE_FAILS_TH    = 5
-DELTA_KEEPALIVE_SLEEP   = 10
+DELTA_KEEPALIVE_SLEEP   = 25
 
 
 class thdKeepAlive(threading.Thread):
@@ -63,7 +63,7 @@ class thdKeepAlive(threading.Thread):
                     self.success = 0
                     self.fails = self.fails + 1
 
-                    #print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) command failed with `{ecode}` {self.success}/{self.fails}" )
+                    #print( f"[KEEPALIVE-RUN] ({datetime.now(tz=self.tz)}) command failed with `{ecode}` {self.success}/{self.fails}" )
                     item = { 'time'  : datetime.now(tz=self.tz),
                              'topic' : "K/keepalive/keepalive/-1/fail",
                              'msg'   : json.dumps( {'value' : self.fails } )
@@ -74,7 +74,7 @@ class thdKeepAlive(threading.Thread):
                     self.success = self.success + 1
                     self.fails = 0
 
-                    #print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) sent successfully {self.success}/{self.fails}" )
+                    #print( f"[KEEPALIVE-RUN] ({datetime.now(tz=self.tz)}) sent successfully {self.success}/{self.fails}" )
                     item = { 'time'  : datetime.now(tz=self.tz),
                             'topic' : "K/keepalive/keepalive/-1/success",
                             'msg'   : json.dumps( {'value' : self.success } )
@@ -87,11 +87,11 @@ class thdKeepAlive(threading.Thread):
 
                 time.sleep( DELTA_KEEPALIVE_SLEEP )
         finally:
-            print( f"[KEEPALIVE-RUN] ({datetime.now(tz=None)}) Stopped Keepalive thread!" )
+            print( f"[KEEPALIVE-RUN] ({datetime.now(tz=self.tz)}) Stopped Keepalive thread!" )
             self.successfully = 0
 
     def stop(self):
-        print( f"[KEEPALIVE-STOP] ({datetime.now(tz=None)}) stop received." )
+        print( f"[KEEPALIVE-STOP] ({datetime.now(tz=self.tz)}) stop received." )
         self._stop_event.set()
 
     def getConnectionState( self ):
