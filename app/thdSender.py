@@ -31,6 +31,7 @@ class thdSender(threading.Thread):
         self.q = self.shared['queue']
         self._stop_event = threading.Event()
 
+        self.lq = queue.Queue()
 
     def run(self):
         print(f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) Starting a thread")
@@ -43,6 +44,17 @@ class thdSender(threading.Thread):
 
         try:
             while not self._stop_event.is_set():
+                
+                if self.lq.qsize() > 100:
+                    items = []
+                    while not self.lq.empty():
+                        items.append(self.lq.get())
+
+                    try:
+                        self.client.write_points( items )
+                    except Exception as ex:
+                        print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) WRITE(1) EXCEPTION {len( items )} items - {str(ex)}!!" )
+                
                 try:
                     item = self.q.get(timeout=60)        
                     if self.PRINT_RECEIVED:
@@ -50,6 +62,15 @@ class thdSender(threading.Thread):
 
                 except queue.Empty:
                     print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) Queue empty" ) 
+
+                    items = []
+                    while not self.lq.empty():
+                        items.append(self.lq.get())
+                    try:
+                        self.client.write_points( items )
+                    except Exception as ex:
+                        print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) WRITE(2) EXCEPTION {len( items )} items - {str(ex)}!!" )
+                    
                     continue
                 
                 try:
@@ -98,9 +119,11 @@ class thdSender(threading.Thread):
                                             'bus_id' : bus_id },
                         'fields'        : { "-".join( topic[4:] ) : value },
                     }
-                    self.client.write_points( [data_point] )
+
+                    self.lq.put(data_point, timeout=1)
+
                 except Exception as ex:
-                    print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) WRITE EXCEPTION `{data_point}` - {str(ex)}!!" )
+                    print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) LQ EXCEPTION `{data_point}` - {str(ex)}!!" )
         finally:
             print( f"[SENDER-RUN] ({datetime.now(tz=self.tz)}) Sender thread stopped")
 
