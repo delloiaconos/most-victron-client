@@ -85,7 +85,7 @@
         state: started
         restart_policy: always
         env:
-          SENDER_RUN_PRINT_MSG: 0
+          SENDER_RUN_PRINT_RECEIVED: "0"
         labels:
           autoheal-monitoring: "true"
         auto_remove: false 
@@ -106,7 +106,7 @@
           AUTOHEAL_START_PERIOD : "300"
           AUTOHEAL_DEFAULT_STOP_TIMEOUT : "30"	
         state: started
-        restart_policy: always
+        restart_policy: unless-stopped
         auto_remove: false 
     
     - name: Create restarting container
