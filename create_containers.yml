@@ -41,15 +41,6 @@
         owner: giroe
         group: docker  
 
-    - name: Ensure Influx directory exists in `{{ config_base_path }}`
-      become: true
-      ansible.builtin.file:
-        path: "{{ config_base_path }}/influx/data"
-        state: directory
-        mode: '0775'
-        owner: giroe
-        group: docker        
-
     - name : Remove ofelia container
       community.docker.docker_container:
         name: "most-ofelia"
@@ -71,20 +62,6 @@
       loop_control:
         loop_var: installation
 
-    - name: Remove INFLUX containers
-      community.docker.docker_container:
-        name: "most-influx"
-        state: absent
-        force_kill: true
-
-    - name: Copy influx configuration
-      copy:
-        src: config/influxdb.conf
-        dest: "{{ config_base_path }}/influx/influxdb.conf"
-        owner: giroe
-        group: docker
-        mode: "0777"
-    
     - name: Generate INI config file
       ansible.builtin.template:
         src: config/config.ini.j2
@@ -104,30 +81,6 @@
         name: most_net
         state: present
         
-    - name: Create INFLUX container
-      community.docker.docker_container:
-        name: "most-influx"
-        image: "influxdb:1.11.7"
-        networks:
-          - name: most_net   
-        hostname: "influx"
-        volumes:
-          - "/etc/localtime:/etc/localtime:ro"
-          - "{{ config_base_path }}/influx/data:/var/lib/influxdb"
-          - "{{ config_base_path }}/influx/influxdb.conf:/etc/influxdb/influxdb.conf:rw"
-        ports:
-          - "8086:8086"
-        env:
-          DOCKER_INFLUXDB_INIT_MODE: setup
-          DOCKER_INFLUXDB_INIT_USERNAME: giroe   
-          DOCKER_INFLUXDB_INIT_PASSWORD: giroe2025
-          DOCKER_INFLUXDB_INIT_BUCKET: TourE
-
-        user: "1000:1000"
-        state: started
-        restart_policy: always
-        auto_remove: false 
-
     - name: Create VRM Client containers from list
       community.docker.docker_container:
         name: "{{ base_container_name }}-{{ installation.name }}"
