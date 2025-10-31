@@ -45,7 +45,6 @@ The application is split across three main threads implemented in two classes:
 [x] Integrated logging
 [x] Docker-friendly
 
-[x] InfluxDB integration pending
 [] Dynamic broker IP re-check (planned)
 [] Topic parsing from Victron's VE.PROTOCOL 3.34 
 
@@ -64,7 +63,7 @@ This client is currently being tested with a Victron Cerbo GX test unit in the l
 
 ## Local Testing
 
-Clone the repo and set up your environment:
+Clone the repo and set up your testing environment:
 
 ```bash
 git clone https://github.com/delloiaconos/MOST-Victron-Clinet.git
