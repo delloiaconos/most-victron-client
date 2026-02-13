@@ -15,6 +15,7 @@ CONFIG_FILE = '/config/config.ini'
 
 def main( args, config ):
     # Site Info initial retrival from VRM
+    getAccessToken( config )
     siteInfo = getSiteInfo( config )
     print( f"[MAIN] ({datetime.now(tz=None)}) {siteInfo}" )
 
