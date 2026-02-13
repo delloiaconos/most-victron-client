@@ -89,12 +89,10 @@ def getAccessToken( config ):
     Check if there is a valid access token, else generate it
     """
     import requests, json, datetime
-    
-    loginVRM( config )
 
     # Lista token esistenti
     url = f"https://vrmapi.victronenergy.com/v2/users/{config['idUser']}/accesstokens"
-
+    
     querystring = {"extended": "1"}
     headers = {
         "Content-Type": "application/json",
@@ -108,17 +106,18 @@ def getAccessToken( config ):
     if response.get("success") == True:
         for token in response.get("tokens"):
             name = str(token["name"])
-            if name[0:6] == "token_":
+            if name.startswith( config['installation'] ):
                 revokeToken( config, token["idAccessToken"] )
         
     # Richiesta nuovo token "token_"
-    url= f"https://vrmapi.victronenergy.com/v2/users/{config['idUser']}/accesstokens/create"
+    url = f"https://vrmapi.victronenergy.com/v2/users/{config['idUser']}/accesstokens/create"
     headers = {
-    "Content-Type": "application/json",
-    "x-authorization": f"Bearer {config['bearer']}"
-        }
-    
-    data= {"name": f"token_{int(datetime.datetime.now().timestamp())}"}
+        "Content-Type": "application/json",
+        "x-authorization": f"Bearer {config['bearer']}",
+    }
+    data= {
+        "name" : f"{config['installation']}-{int(datetime.datetime.now().timestamp())}"
+    }
     
     r = requests.request("POST", url, headers=headers, json=data)
     response = r.json()
