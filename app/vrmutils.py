@@ -1,4 +1,3 @@
-
 def getBaseClientId():
     """
     Generates a base client ID for the MQTT connection.
@@ -14,7 +13,7 @@ def getSiteInfo( config ):
     """
     Reads the idSites VRM API.
     """
-    import requests, json
+    import requests, json, datetime
 
     id_site = int( config['id_site'] )
     api_access_token = config['api_access_token']
@@ -28,7 +27,7 @@ def getSiteInfo( config ):
 
     r = requests.request("GET", url, headers=headers, params=querystring)
     if r.status_code != 200:
-        print( f"[MAIN-getSiteInfo] ({datetime.now(tz=None)}) api: {r}" )
+        print( f"[MAIN-getSiteInfo] ({datetime.datetime.now(tz=None)}) api: {r}" )
 
     data = json.loads(r.text)
 
