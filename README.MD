@@ -121,6 +121,22 @@ ansible-galaxy collection install community.docker
 ansible-playbook create_containers.yml --ask-become-pass
 ```
 
+A custom command has been added to the `Makefile`
+
+```bash
+make ansible-deploy
+```
+
+# Notes
+
+## Shell Victron Authentication
+
+```bash
+curl -X POST "https://vrmapi.victronenergy.com/v2/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"user@domain.net","password":"SecretPassword"}'
+```
+
 # Git & Collaboration
 This project is version-controlled via Git for clarity and development hygiene — no CI/CD or advanced Git-based deployments are planned.
 If you'd like access to the repository, just ask the maintainer.

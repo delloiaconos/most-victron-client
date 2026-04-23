@@ -7,7 +7,7 @@ CONTAINER_NAME ?= most-giroe-development
 
 # ===== Targets =====
 
-.PHONY: all build push run deploy clean test inspect
+.PHONY: all build push run deploy clean test inspect ansible-deply
 
 all: build
 
@@ -41,3 +41,6 @@ inspect:
 clean:
 	-docker stop $(CONTAINER_NAME)
 	-docker rm $(CONTAINER_NAME)
+
+ansible-deploy:
+	ansible-playbook create_containers.yml --ask-become-pass
