@@ -36,7 +36,7 @@ RUN mkdir /config
 COPY certs/venus-ca.crt /certs/venus-ca.crt
 
 # CONFIGURATION
-COPY config/config.ini /config/config.ini
+# COPY config/config.ini /config/config.ini
 
 # APPLICATION
 COPY app/*.sh /app/
