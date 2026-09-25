@@ -25,20 +25,34 @@ def getSiteInfo( config ):
         "x-authorization": f"Token {api_access_token}",
     }
 
-    r = requests.request("GET", url, headers=headers, params=querystring)
-    if r.status_code != 200:
-        print( f"[MAIN-getSiteInfo] ({datetime.datetime.now(tz=None)}) api: {r}" )
+    while True:
+        try:
+            r = requests.request("GET", url, headers=headers, params=querystring)
+            if r.status_code != 200:
+                print( f"[MAIN-getSiteInfo] ({datetime.datetime.now(tz=None)}) api: {r}" )
+                time.sleep(5)
+                continue
+            break
+        except Exception as e:
+            print( f"[MAIN-getSiteInfo] ({datetime.datetime.now(tz=None)}) Exception: {str(e)}" )
+            time.sleep(5)
+            continue
+        
+
 
     data = json.loads(r.text)
 
+    
     idSites = {}
 
-    for i in data["records"]:
-        idSites[i["idSite"]] = {
-            "name": i["name"],
-            "portal_id": i["identifier"],
-            "mqtt_host": i["mqtt_host"],
+    for d in data["records"]:
+        
+        idSites[d["idSite"]] = {
+            "name": d["name"],
+            "portal_id": d["identifier"],
+            "mqtt_host": d["mqtt_host"],
         }
+
     
     return idSites[id_site] 
 
