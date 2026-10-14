@@ -1,3 +1,5 @@
+import time
+
 def getBaseClientId():
     """
     Generates a base client ID for the MQTT connection.

@@ -64,7 +64,10 @@
 
     - name: Generate INI config file
       ansible.builtin.template:
-        src: config/config.ini.j2
+        src: "{{ lookup('ansible.builtin.first_found', [
+            'config/config.ini.j2.dev',
+            'config/config.ini.j2'
+          ]) }}"
         dest: "{{ config_base_path }}/config/{{ installation.name }}-config.ini"
         mode: '0644'
       loop: "{{ installations }}"
